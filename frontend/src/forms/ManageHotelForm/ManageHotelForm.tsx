@@ -55,7 +55,7 @@ export type HotelFormData = {
 };
 
 type Props = {
-  hotel?: HotelType;
+  hotel?: HotelType; // optional as we dont always recieve it 
   onSave: (hotelFormData: FormData) => void;
   isLoading: boolean;
 };
@@ -70,6 +70,9 @@ const ManageHotelForm = ({ onSave, isLoading, hotel }: Props) => {
 
   const onSubmit = handleSubmit((formDataJson: HotelFormData) => {
     const formData = new FormData();
+    
+    // initilly for the formDaa we dont have a hotel for a user but if we 
+    // have a hotel we should include its id in the formData
     if (hotel) {
       formData.append("hotelId", hotel._id);
     }
@@ -89,6 +92,10 @@ const ManageHotelForm = ({ onSave, isLoading, hotel }: Props) => {
       formData.append(`facilities[${index}]`, facility);
     });
 
+    // since we dont have access for the exact location of the imgs for 
+    // security risks, we instead check if there are imageUrls and if there 
+    // is we simply display them
+    // it waits for the urls after uploading to cloudinary
     if (formDataJson.imageUrls) {
       formDataJson.imageUrls.forEach((url, index) => {
         formData.append(`imageUrls[${index}]`, url);
@@ -96,6 +103,8 @@ const ManageHotelForm = ({ onSave, isLoading, hotel }: Props) => {
     }
 
     // we cant use forEach on files so this is a custom like function
+    // creating the imageFiles that we send to the backend that then 
+    // hels us recieve an imageUrl
     Array.from(formDataJson.imageFiles).forEach((imageFile) => {
       formData.append(`imageFiles`, imageFile);
     });

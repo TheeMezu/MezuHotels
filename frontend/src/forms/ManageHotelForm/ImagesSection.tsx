@@ -9,12 +9,14 @@ const ImagesSection = () => {
     setValue,
   } = useFormContext<HotelFormData>();
 
+  // so we can check if there are imgs and if they change
   const existingImageUrls = watch("imageUrls");
 
   const handleDelete = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     imageUrl: string) => {
-    event.preventDefault();
+    event.preventDefault(); 
+    // stops the default action of a form which submitting it
     setValue("imageUrls", existingImageUrls.filter((url) => url !== imageUrl));
   };
 
