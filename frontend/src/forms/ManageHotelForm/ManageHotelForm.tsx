@@ -4,8 +4,40 @@ import TypeSection from "./TypeSection";
 import FacilitiesSection from "./FacilitiesSection";
 import GuestsSection from "./GuestsSection";
 import ImagesSection from "./ImagesSection";
-import { HotelType } from "../../../../backend/src/shared/types";
+// import { HotelType } from "../../../../backend/src/shared/types";
 import { useEffect } from "react";
+
+type BookingType = {
+  _id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  adultCount: number;
+  childCount: number;
+  checkIn: Date;
+  checkOut: Date;
+  totalCost: number;
+};
+
+
+type HotelType = {
+  _id: string;
+  userId: string;
+  name: string;
+  city: string;
+  country: string;
+  description: string;
+  type: string;
+  adultCount: number; // we have it as a number as we might do some computations
+  childCount: number;
+  facilities: string[];
+  pricePerNight: number;
+  starRating: number;
+  imageUrls: string[];
+  lastUpdated: Date;
+  bookings: BookingType[];
+};
 
 export type HotelFormData = {
   name: string;
