@@ -4,9 +4,16 @@ import "dotenv/config"
 import mongoose from "mongoose"
 import userRoutes from "./routes/users"
 import authRoutes from "./routes/auth"
+import myHotelRoutes from "./routes/my-hotels"
 import cookieParser from "cookie-parser"
 import path from "path"
+import {v2 as cloudinary} from "cloudinary"
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.COUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+})
 
 // to connect to our test database we added a new script e2e so we can have
 // 2 different databases so we can have a consistant database for testing 
@@ -33,6 +40,12 @@ app.use(express.static(path.join(__dirname, "../../frontend/dist")))
 
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
+app.use("/api/my-hotels", myHotelRoutes)
+
+// as it is a protected route we have to specify for 
+app.get("*", (req: Request, res:Response)=>{
+    res.sendFile(path.join(__dirname, "../../fronted/dist/index.html"))
+})
 
 app.listen(7000, () => {
     console.log("server running on localhost:7000");
