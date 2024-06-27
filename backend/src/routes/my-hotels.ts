@@ -61,6 +61,44 @@ router.post(
     }
 );
 
+router.put(
+    "/:hotelId",
+    verifyToken,
+    upload.array("imageFiles"),
+    async (req: Request, res: Response) => {
+        try {
+            const updatedHotel: HotelType = req.body;
+            updatedHotel.lastUpdated = new Date();
+    
+            const hotel = await Hotel.findOneAndUpdate(
+            {
+                _id: req.params.hotelId,
+                userId: req.userId,
+            },
+            updatedHotel,
+            { new: true }
+            );
+    
+            if (!hotel) {
+            return res.status(404).json({ message: "Hotel not found" });
+            }
+    
+            const files = req.files as Express.Multer.File[];
+            const updatedImageUrls = await uploadImages(files);
+    
+            hotel.imageUrls = [
+            ...updatedImageUrls,
+            ...(updatedHotel.imageUrls || []),
+            ];
+    
+            await hotel.save();
+            res.status(201).json(hotel);
+        } catch (error) {
+            res.status(500).json({ message: "Something went throw" });
+        }
+    }
+);
+
 // we map because cloudinary accepts 1 image per upload 
 async function uploadImages(imageFiles: Express.Multer.File[]) {
     const uploadPromises = imageFiles.map(async (image) => {
@@ -75,5 +113,18 @@ async function uploadImages(imageFiles: Express.Multer.File[]) {
     const imageUrls = await Promise.all(uploadPromises);
     return imageUrls;
 }
+
+
+router.get("/", verifyToken, async (req: Request, res: Response)=>{
+
+    try{
+        const hotels = await Hotel.find({userId: req.userId})
+        res.json(hotels)
+
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+})
 
 export default router;
