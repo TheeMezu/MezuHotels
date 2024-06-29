@@ -17,7 +17,7 @@ test('should allow the user to sign in', async ({ page }) => {
 
   // here we are filling the fields of email and password 
   await page.locator("[name=email]").fill("1@1.com")
-  await page.locator("[name=password]").fill("password")
+  await page.locator("[name=password]").fill("password123")
   
   // here we are clicking on the button so it can redirect us to the home page
   await page.getByRole("button", {name: "Login"}).click()
