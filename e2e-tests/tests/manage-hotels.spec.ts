@@ -70,6 +70,9 @@ test("should edit hotel", async ({ page }) => {
 
   await page.getByRole("link", { name: "View Details" }).first().click();
 
+  // state: attached basically tells for it to wait for the stuff to finish first 
+  // as we are still loggin in and getting the hotel and such, telling
+  // [name="name"] to w8 for a name to appear
   await page.waitForSelector('[name="name"]', { state: "attached" });
   await expect(page.locator('[name="name"]')).toHaveValue("Dublin Getaways");
   await page.locator('[name="name"]').fill("Dublin Getaways UPDATED");
@@ -78,6 +81,7 @@ test("should edit hotel", async ({ page }) => {
 
   await page.reload();
 
+  // here we are simply renaming the name again so we can always reuse the test 
   await expect(page.locator('[name="name"]')).toHaveValue(
     "Dublin Getaways UPDATED"
   );
