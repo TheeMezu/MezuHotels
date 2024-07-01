@@ -53,6 +53,7 @@ router.get("/search", async(req:Request, res:Response)=> {
     }
 })
 
+// public api as we are getting all the recent hotels 
 router.get("/", async (req: Request, res: Response) => {
     try {
         const hotels = await Hotel.find().sort("-lastUpdated");
