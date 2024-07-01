@@ -227,6 +227,17 @@ const constructSearchQuery = (queryParams: any) => {
     // we turn them into an array of numbers as query returns a string
     // since we can have multiple stars we find all hotels that has those
     // stars in them which is why we use $in 
+
+    // $in is better used for top level object search in an array 
+    // searching for all the hotels that has a name of A, but it wouldnt work
+    // for searching for a userId in bookings as it is nested
+    // {
+    //     "name": "Hotel A",
+    //     "bookings": [
+    //       { "userId": "123", "date": "2023-01-01" },
+    //       { "userId": "456", "date": "2023-01-02" }
+    //     ]
+    // }
     if (queryParams.stars) {
         const starRatings = Array.isArray(queryParams.stars)
             ? queryParams.stars.map((star: string) => parseInt(star))
