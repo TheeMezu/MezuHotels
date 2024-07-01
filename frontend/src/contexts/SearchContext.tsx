@@ -57,14 +57,15 @@ export const SearchContextProvider = ({children,}: SearchContextProviderProps) =
         }
 
         sessionStorage.setItem("destination", destination);
-        sessionStorage.setItem("checkIn", checkIn.toISOString());
+        // to save it as string
+        sessionStorage.setItem("checkIn", checkIn.toISOString()); 
         sessionStorage.setItem("checkOut", checkOut.toISOString());
         sessionStorage.setItem("adultCount", adultCount.toString());
         sessionStorage.setItem("childCount", childCount.toString());
 
         if (hotelId) {
             sessionStorage.setItem("hotelId", hotelId);
-        }
+        }// already a string 
     };
 
     return (

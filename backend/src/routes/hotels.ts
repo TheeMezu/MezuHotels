@@ -1,9 +1,13 @@
 import express, { Request, Response } from "express";
 import Hotel from "../models/hotel";
-import { HotelSearchResponse } from "../shared/types";
+import { BookingType, HotelSearchResponse } from "../shared/types";
 import { param, validationResult } from "express-validator";
+import Stripe from "stripe"
+import verifyToken from "../middleware/auth";
 
 const router = express.Router();
+
+const stripe = new Stripe(process.env.STRIPE_API_KEY as string)
 
 router.get("/search", async(req:Request, res:Response)=> {
     try{
@@ -80,6 +84,105 @@ router.get(
         }
     }
 );
+
+// this smply calculates the total cost and then creates a payment intent 
+// that creates a paymentIntent.client_secret that the frontend needs to 
+// make the payment. in th frontend stripe sdk is the one that handles 
+// the payment and not us 
+router.post("/:hotelId/bookings/payment-intent", verifyToken, async(req: Request, res: Response) => {
+    // we calculated that in the front end
+    const {numberOfNights} = req.body
+    // so we can the price of 1 night of that selected hotel
+    const hotelId = req.params.hotelId 
+    const hotel = await Hotel.findById(hotelId)
+
+    if(!hotel){
+        return res.status(400).json({message: "Hotel not found"})
+    }
+
+    // we do the total cost here incase the prices change 
+    const totalCost = hotel.pricePerNight * numberOfNights
+
+    // this gives us a paymentIntent.client_secret which we need to pass
+    // to th frontend for payment 
+    const paymentIntent = await stripe.paymentIntents.create({
+        amount: totalCost * 100,
+        currency: "gbp",
+        metadata: {
+            hotelId,
+            userId: req.userId
+        }
+    })
+
+    if (!paymentIntent.client_secret) {
+        return res.status(500).json({ message: "Error creating payment intent" });
+    }
+
+    // id is given from the paymentIntent
+    const response = {
+        paymentIntentId: paymentIntent.id,
+        clientSecret: paymentIntent.client_secret.toString(),
+        totalCost,
+    };
+
+    res.send(response);
+})
+
+// here we are simply confirming that payment was successful so we can add
+// the booking into the database by checking multiple statements to make 
+// sure its valid
+router.post("/:hotelId/bookings", verifyToken, async (req: Request, res: Response) => {
+    try {
+        const paymentIntentId = req.body.paymentIntentId;
+
+        // here we are getting the invoice for the payment
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+            paymentIntentId as string
+        );
+
+        if (!paymentIntent) {
+            return res.status(400).json({ message: "payment intent not found" });
+        }
+
+        // here we are checling the userId and the hotelId that created 
+        // the paymentIntent match or not
+        if (
+            paymentIntent.metadata.hotelId !== req.params.hotelId ||
+            paymentIntent.metadata.userId !== req.userId
+        ) {
+            return res.status(400).json({ message: "payment intent mismatch" });
+        }
+
+        // check for payment is a success or not 
+        if (paymentIntent.status !== "succeeded") {
+            return res.status(400).json({
+            message: `payment intent not succeeded. Status: ${paymentIntent.status}`,
+            });
+        }
+
+        const newBooking: BookingType = {
+            ...req.body,
+            userId: req.userId,
+        };
+
+        const hotel = await Hotel.findOneAndUpdate(
+            { _id: req.params.hotelId },
+            {
+                $push: { bookings: newBooking },
+            }
+        );
+
+        if (!hotel) {
+            return res.status(400).json({ message: "hotel not found" });
+        }
+
+        await hotel.save();
+        res.status(200).send();
+    } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "something went wrong" });
+    }
+});
 
 const constructSearchQuery = (queryParams: any) => {
     let constructedQuery: any = {};

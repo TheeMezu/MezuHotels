@@ -9,7 +9,7 @@ type Props = {
     pricePerNight: number;
 };
 
-type GuestInfoFormData = {
+export type GuestInfoFormData = {
     checkIn: Date;
     checkOut: Date;
     adultCount: number;

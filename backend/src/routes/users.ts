@@ -2,8 +2,30 @@ import express, {Request, Response} from "express";
 import User from "../models/user";
 import jwt from "jsonwebtoken"
 import { check, validationResult } from "express-validator";
+import verifyToken from "../middleware/auth";
 
 const router = express.Router()
+
+// we get req.userId from verifytoken as we dont need to specify the id 
+// as params as getting it from verifyToken makes it more secure
+router.get("/me", verifyToken, async (req: Request, res: Response) => {
+    const userId = req.userId
+
+    try{
+        // good to return it without the password for security risks
+        const user = await User.findById(userId).select("-password")
+
+        if(!user){
+            return res.status(400).json({message: "User not found"})
+        }
+
+        res.json(user)
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Something went wrong" });
+    }
+})
 
 router.post(
     "/register",
