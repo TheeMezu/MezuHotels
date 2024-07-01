@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { AiFillStar } from "react-icons/ai";
-import { HotelType } from "../forms/ManageHotelForm/ManageHotelForm";
+import { HotelType } from "../shared/Types";
+
 
 type Props = {
   hotel: HotelType;
